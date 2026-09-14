@@ -17,9 +17,9 @@ def get_llm_adapter() -> LLMAdapter:
     if provider == "ollama":
         _adapter = OllamaAdapter(settings.llm_base_url, settings.llm_model, settings.llm_timeout)
     elif provider == "llama_cpp":
-        _adapter = LlamaCppAdapter(settings.llm_base_url, settings.llm_model, settings.llm_timeout)
+        _adapter = LlamaCppAdapter(settings.llm_base_url, settings.llm_model, settings.llm_timeout, settings.llm_api_key or "not-needed")
     elif provider == "vllm":
-        _adapter = VllmAdapter(settings.llm_base_url, settings.llm_model, settings.llm_timeout)
+        _adapter = VllmAdapter(settings.llm_base_url, settings.llm_model, settings.llm_timeout, settings.llm_api_key or "not-needed")
     else:
         raise ValueError(f"Unknown LLM_PROVIDER: {provider}")
     return _adapter

@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     llm_base_url: str = "http://localhost:11434"
     llm_model: str = "qwen2.5:7b"
     llm_timeout: float = 30.0
+    # Only used by the llama_cpp/vllm providers (both OpenAI-compatible) —
+    # required for a real hosted API (OpenRouter, Groq, Together, ...), not
+    # needed for a local llama.cpp/vLLM server, which ignores it.
+    llm_api_key: str = ""
 
     rag_enabled: bool = True
     rag_persist_dir: str = "./data/chroma"
