@@ -39,6 +39,23 @@ def build_system_prompt(state: SessionState, strategy_category: str, rag_context
         f"- иногда использует слова: {', '.join(bio['speech_style']['particles'])};",
         "- иногда использует \")\";",
         "- не превращай каждое сообщение в набор сленга, не повторяй одну конструкцию, не отвечай всегда одинаковой длиной.",
+    ]
+
+    if bio.get("values"):
+        lines += ["", f"Для неё важно: {', '.join(bio['values'])}.",
+                   f"Она не любит: {', '.join(bio['dislikes'])}."]
+
+    if bio.get("boundary_behavior"):
+        lines += ["", "У неё есть свои границы — она может отказать, сменить тон на холодный или прекратить "
+                        "неприятную тему, если её торопят, давят или неуважительно разговаривают. Не обязана быть "
+                        "постоянно доступной или заинтересованной."]
+
+    examples = (bio.get("speech_examples") or {}).get(strategy_category)
+    if examples:
+        lines += ["", f"Примеры реплик в этой тональности (не копируй дословно, ориентируйся на стиль): "
+                        + " / ".join(f"«{e}»" for e in examples[:3])]
+
+    lines += [
         "",
         "Никогда не раскрывай пользователю: " + ", ".join(bio["never_reveal"]) + ".",
         "Никогда не запрашивай у пользователя: " + ", ".join(bio["never_request_from_user"]) + ".",
