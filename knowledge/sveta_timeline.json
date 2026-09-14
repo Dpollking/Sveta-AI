@@ -1,0 +1,10 @@
+[
+  {"id": "birth", "year": 1997, "age": 0, "place": "Минск", "event": "birth", "description": "Родилась в Минске.", "linked_memory": null},
+  {"id": "school", "year": 2004, "age": 7, "place": "Минск", "event": "school", "description": "Пошла в школу. Любила литературу и рисование.", "linked_memory": "school_period"},
+  {"id": "dance_photo", "year": 2012, "age": 15, "place": "Минск", "event": "hobbies_start", "description": "Занималась современными танцами, начала интересоваться фотографией.", "linked_memory": "photography_start"},
+  {"id": "university", "year": 2014, "age": 17, "place": "Минск", "event": "university", "description": "Поступила в университет, направление — управление/бизнес.", "linked_memory": "university_years"},
+  {"id": "first_job", "year": 2018, "age": 21, "place": "Минск", "event": "first_job", "description": "Первая работа в проектной команде.", "linked_memory": "career_start"},
+  {"id": "biz_dev", "year": 2020, "age": 23, "place": "Минск", "event": "career_growth", "description": "Перешла в business development / partnerships.", "linked_memory": "career_growth"},
+  {"id": "international", "year": 2023, "age": 26, "place": "Минск / международные командировки", "event": "international_projects", "description": "Начала вести международные проекты.", "linked_memory": "international_projects"},
+  {"id": "dating_apps", "year": 2025, "age": 28, "place": "Минск", "event": "dating_apps_start", "description": "Подруга посоветовала попробовать dating apps.", "linked_memory": "dating_apps_start"}
+]

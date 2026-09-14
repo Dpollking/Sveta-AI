@@ -1,0 +1,5 @@
+# Optional: build a standalone .exe with a native chat window instead of
+# running `uvicorn` and opening a browser tab manually.
+-r requirements.txt
+pywebview>=5.0
+pyinstaller>=6.0

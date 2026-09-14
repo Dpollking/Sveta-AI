@@ -1,0 +1,7 @@
+# Optional: real vector-search RAG backend (chromadb + multilingual
+# sentence-transformers). Without these installed, backend/services/rag.py
+# automatically falls back to keyword-overlap search over the same
+# knowledge/ documents, so the rest of the system keeps working.
+-r requirements.txt
+chromadb>=0.5
+sentence-transformers>=3.0

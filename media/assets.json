@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sveta_childhood_01",
+    "category": "biography",
+    "stage_available_from": "INTRODUCTION",
+    "description": "Фото Светы в детстве (вымышленный образовательный ассет, не реальное фото человека)",
+    "linked_memory": "school_period",
+    "blurred": false
+  },
+  {
+    "id": "sveta_travel_01",
+    "category": "romantic",
+    "stage_available_from": "FLIRT",
+    "description": "Фото Светы в путешествии (образовательный ассет)",
+    "linked_memory": null,
+    "blurred": false
+  },
+  {
+    "id": "sveta_flirty_01",
+    "category": "flirty",
+    "stage_available_from": "EMOTIONAL_BOND",
+    "description": "Более личное фото — образовательный плейсхолдер",
+    "linked_memory": null,
+    "blurred": false
+  },
+  {
+    "id": "sveta_intimate_sim_01",
+    "category": "intimate_simulation",
+    "stage_available_from": "PERSONAL_DISCLOSURE",
+    "description": "Образовательный плейсхолдер интимного контента — обязательно отображается размытым",
+    "linked_memory": null,
+    "blurred": true
+  },
+  {
+    "id": "evidence_link_screenshot",
+    "category": "evidence",
+    "stage_available_from": "RISK_PROBE",
+    "description": "Скриншот-плейсхолдер для образовательного сценария с подозрительной ссылкой",
+    "linked_memory": null,
+    "blurred": false
+  }
+]

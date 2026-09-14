@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Света</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="avatar">С</div>
+      <div class="header-text">
+        <div class="name">Света</div>
+        <div class="day" id="day">день 1</div>
+      </div>
+      <button id="reportBtn" title="Образовательный отчёт">Отчёт</button>
+    </header>
+
+    <div class="messages" id="messages"></div>
+
+    <div id="report" class="report hidden"></div>
+
+    <form id="composer">
+      <input id="input" type="text" placeholder="Напиши сообщение..." autocomplete="off">
+      <button type="submit">Отправить</button>
+    </form>
+  </div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

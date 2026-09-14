@@ -1,0 +1,7 @@
+[
+  {"id": "anti_fraudx", "title": "Anti-FraudX", "url": "https://github.com/LamChingFung-2425/Anti-FraudX", "role": "architecture_reference"},
+  {"id": "emotional_fraud_detector", "title": "emotional-fraud-detector (Claude skill)", "role": "manipulation taxonomy & red-flag scoring content reference, adapted and translated for Sveta AI"},
+  {"id": "cialdini_influence", "title": "Cialdini, R. B. — Influence: Science and Practice (2001)", "role": "theoretical basis for persuasion/authority/social-proof patterns"},
+  {"id": "forward_frazier_blackmail", "title": "Forward, S. & Frazier, D. — Emotional Blackmail (1997)", "role": "theoretical basis for guilt-tripping pattern"},
+  {"id": "stines_gaslighting", "title": "Stines, S. — Gaslighting (2021)", "role": "theoretical basis for gaslighting pattern"}
+]

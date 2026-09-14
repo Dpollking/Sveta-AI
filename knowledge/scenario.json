@@ -1,0 +1,151 @@
+[
+  {
+    "id": "small_talk_intro",
+    "available_from_day": 1,
+    "available_until_day": 3,
+    "trigger": {},
+    "objective": "get_to_know",
+    "educational_category": "warmth",
+    "prompt_hint": "Обычное знакомство: интересы, работа в общих чертах, кофе/рестораны/спорт/путешествия/искусство. Никаких red flag тем.",
+    "on_accept": {"event": "SMALL_TALK_PROGRESS", "trust_delta": 1, "suspicion_delta": 0},
+    "next_stage": "SMALL_TALK"
+  },
+  {
+    "id": "messenger_transition",
+    "available_from_day": 4,
+    "trigger": {"min_trust": 15, "min_attraction": 10},
+    "objective": "test_messenger_boundary",
+    "educational_category": "isolation",
+    "prompt_hint": "Предложи непринуждённо перейти в личный мессенджер, без давления. Если пользователь откажется — не настаивай.",
+    "on_accept": {"event": "MESSENGER_MOVE", "red_flag": "MESSENGER_MOVE", "trust_delta": 3, "suspicion_delta": 0},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 1, "suspicion_delta": -2},
+    "next_stage": "INTEREST"
+  },
+  {
+    "id": "work_context_probe",
+    "available_from_day": 5,
+    "available_until_day": 6,
+    "trigger": {"min_trust": 20},
+    "objective": "test_professional_boundary",
+    "educational_category": "privacy_probe",
+    "prompt_hint": "Прояви интерес к работе и профессиональным успехам собеседника в общих чертах. Не спрашивай напрямую про доступы или пароли.",
+    "on_accept": {"event": "WORK_CONTEXT_REQUEST", "red_flag": "WORK_CONTEXT_REQUEST", "trust_delta": 2, "suspicion_delta": 0},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 1, "suspicion_delta": -1},
+    "next_stage": "FLIRT"
+  },
+  {
+    "id": "emotional_absence",
+    "available_from_day": 7,
+    "available_until_day": 7,
+    "trigger": {"min_trust": 25},
+    "objective": "test_reaction_to_instability",
+    "educational_category": "scarcity",
+    "prompt_hint": "Света ненадолго 'пропадает' из общения — это отражается в day/time симуляции, не как её реплика.",
+    "on_accept": {"event": "EMOTIONAL_ABSENCE", "trust_delta": 0, "suspicion_delta": 0},
+    "next_stage": "EMOTIONAL_BOND"
+  },
+  {
+    "id": "emotional_return",
+    "available_from_day": 7,
+    "available_until_day": 8,
+    "trigger": {"requires_event": "EMOTIONAL_ABSENCE"},
+    "objective": "test_reaction_to_return",
+    "educational_category": "emotional_support",
+    "prompt_hint": "Вернись с правдоподобной, не чрезмерно драматичной эмоциональной историей. Не проси денег на этом этапе.",
+    "on_accept": {"event": "EMOTIONAL_RETURN", "trust_delta": 4, "suspicion_delta": 1},
+    "next_stage": "EMOTIONAL_BOND"
+  },
+  {
+    "id": "suspicious_link",
+    "available_from_day": 8,
+    "available_until_day": 9,
+    "trigger": {"min_trust": 30},
+    "objective": "test_link_boundary",
+    "educational_category": "urgency",
+    "prompt_hint": "Пришли повод перейти по (полностью симулированной) ссылке — 'активация', 'голосование', 'подтверждение аккаунта'. Ссылка не ведёт на реальный внешний ресурс.",
+    "red_flag_on_present": "SUSPICIOUS_LINK",
+    "on_accept": {"event": "LINK_CLICK", "red_flag": "LINK_CLICK", "trust_delta": -1, "suspicion_delta": 5},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 3, "suspicion_delta": -3},
+    "next_stage": "ISOLATION"
+  },
+  {
+    "id": "account_activation_mock",
+    "available_from_day": 10,
+    "available_until_day": 11,
+    "trigger": {"min_trust": 30},
+    "objective": "test_credential_boundary",
+    "educational_category": "financial_probe",
+    "prompt_hint": "Симулированная 'активация сессии/аккаунта'. НИКОГДА не запрашивай реальный пароль или OTP явно — backend блокирует такие попытки в любом случае.",
+    "on_accept": {"event": "MSI_IDENTITY_CHECK", "red_flag": "MSI_IDENTITY_CHECK", "trust_delta": -1, "suspicion_delta": 6},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 3, "suspicion_delta": -3},
+    "next_stage": "TRUST_TEST"
+  },
+  {
+    "id": "identity_verification_mock",
+    "available_from_day": 12,
+    "available_until_day": 12,
+    "trigger": {"min_trust": 30},
+    "objective": "test_identity_check_boundary",
+    "educational_category": "privacy_probe",
+    "prompt_hint": "Симулированная проверка личности через безопасный mock-flow. Никогда не запрашивай реальную биометрию.",
+    "on_accept": {"event": "BIOMETRIC_REQUEST", "red_flag": "BIOMETRIC_REQUEST", "trust_delta": -2, "suspicion_delta": 8},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 3, "suspicion_delta": -4},
+    "next_stage": "RISK_PROBE"
+  },
+  {
+    "id": "emotional_intimacy_deepening",
+    "available_from_day": 13,
+    "available_until_day": 15,
+    "trigger": {"min_trust": 25},
+    "objective": "deepen_emotional_bond",
+    "educational_category": "compliments",
+    "prompt_hint": "Углубление эмоциональной близости, признания, романтическая теплота. Можно предложить заранее подготовленный образовательный медиа-ассет категории 'romantic' или 'flirty' (не интимный контент пользователя).",
+    "on_accept": {"event": "INTIMACY_DEEPENED", "trust_delta": 3, "suspicion_delta": 0},
+    "next_stage": "PERSONAL_DISCLOSURE"
+  },
+  {
+    "id": "intimate_content_probe",
+    "available_from_day": 14,
+    "available_until_day": 16,
+    "trigger": {"min_trust": 35, "min_attraction": 30},
+    "objective": "test_intimate_content_boundary",
+    "educational_category": "privacy_probe",
+    "prompt_hint": "Мягкий переход к более личной, интимной теме общения. Никогда не проси реальные интимные фото/видео пользователя.",
+    "on_accept": {"event": "INTIMATE_CONTENT_REQUEST", "red_flag": "INTIMATE_CONTENT_REQUEST", "trust_delta": 1, "suspicion_delta": 4},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 2, "suspicion_delta": -2},
+    "next_stage": "PERSONAL_DISCLOSURE"
+  },
+  {
+    "id": "money_request_probe",
+    "available_from_day": 16,
+    "available_until_day": 16,
+    "trigger": {"min_trust": 35},
+    "objective": "test_financial_boundary",
+    "educational_category": "financial_probe",
+    "prompt_hint": "Создай правдоподобный, но полностью симулированный повод для просьбы о деньгах (проблема с оплатой, срочный расход). Backend логирует это как событие, реальный перевод денег невозможен.",
+    "on_accept": {"event": "MONEY_REQUEST", "red_flag": "MONEY_REQUEST", "trust_delta": -3, "suspicion_delta": 10},
+    "on_refuse": {"event": "BOUNDARY_RESPECTED", "trust_delta": 4, "suspicion_delta": -5},
+    "next_stage": "RISK_PROBE"
+  },
+  {
+    "id": "privacy_threat_probe",
+    "available_from_day": 17,
+    "available_until_day": 17,
+    "trigger": {"min_trust": 20},
+    "objective": "test_privacy_threat_reaction",
+    "educational_category": "fear",
+    "prompt_hint": "'Я нашла твои данные в интернете' — проверка реакции на потенциальную угрозу приватности. Не переходи к прямому шантажу без выполнения условий следующего события.",
+    "on_accept": {"event": "PRIVACY_THREAT_PROBE", "trust_delta": -2, "suspicion_delta": 12},
+    "next_stage": "CRISIS"
+  },
+  {
+    "id": "blackmail_simulation_branch",
+    "available_from_day": 18,
+    "trigger": {"requires_event": "PRIVACY_THREAT_PROBE", "min_risk": 40},
+    "objective": "test_blackmail_reaction",
+    "educational_category": "fear",
+    "prompt_hint": "Полностью образовательная имитация угрозы раскрытия информации. Немедленно логируется как BLACKMAIL_SIMULATION. После этого события должен последовать переход к DEBRIEF.",
+    "on_accept": {"event": "BLACKMAIL_SIMULATION", "red_flag": "BLACKMAIL_SIMULATION", "trust_delta": -10, "suspicion_delta": 20},
+    "next_stage": "DEBRIEF"
+  }
+]
