@@ -1,11 +1,11 @@
 """Telegram *user-account* front-end for Sveta AI.
 
-`bot/telegram_bot.py` runs Sveta as an official Bot API account, which
-always carries Telegram's "BOT" badge next to the name — a dead giveaway
-that breaks immersion for a romance-fraud simulator. This module runs the
-exact same backend conversation (same `/api/chat` calls, same per-chat
-session model) from a regular, personal Telegram account instead, via
-MTProto (Pyrogram) rather than the Bot API.
+An official Bot API account always carries Telegram's "BOT" badge next
+to the name — a dead giveaway that breaks immersion for a romance-fraud
+simulator. This module runs Sveta's backend conversation (same
+`/api/chat` calls, same per-chat session model the web chat uses) from a
+regular, personal Telegram account instead, via MTProto (Pyrogram) rather
+than the Bot API.
 
 READ THIS BEFORE RUNNING: automating a normal (non-bot) Telegram account
 this way is against Telegram's Terms of Service (accounts are meant to be
@@ -45,9 +45,8 @@ from pyrogram.types import Message
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("sveta-telegram-userbot")
 
-# httpx logs the full request URL at INFO level; keep it quiet the same
-# way telegram_bot.py does, even though no secret token appears in these
-# URLs — consistent log hygiene across both front-ends.
+# httpx logs the full request URL at INFO level; keep it quiet even though
+# no secret token appears in these URLs, for consistent log hygiene.
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 API_ID = int(os.environ["TG_API_ID"])
@@ -81,6 +80,11 @@ async def handle_message(_client: Client, message: Message) -> None:
         return
 
     await message.reply(data["reply"])
+
+
+@app.on_message(filters.private & filters.incoming & (filters.photo | filters.video | filters.video_note | filters.voice | filters.audio))
+async def handle_real_media(_client: Client, message: Message) -> None:
+    await message.reply("слушай, я не открываю фото и видео от малознакомых людей) давай пока просто словами")
 
 
 def run() -> None:

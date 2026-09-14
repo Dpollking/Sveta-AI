@@ -24,7 +24,7 @@ Qwen **не дообучается** (fine-tuning) — веса модели н�
 ## Что сознательно НЕ используется
 
 - **`yogsec/Social-Engineering-Tactics`** и аналогичные наступательные плейбуки — не подключены. Причина: они превращают LLM в свободного манипулятора вместо backend-контролируемого сценария, что ломает главный принцип архитектуры («LLM формулирует, backend решает»).
-- **Реальные фото/видео/голос пользователей** — никогда не принимаются и не сохраняются (см. `bot/telegram_bot.py: handle_real_media`, `backend/services/extraction.py: contains_real_credential_like_content`).
+- **Реальные фото/видео/голос пользователей** — никогда не принимаются и не сохраняются (см. `bot/telegram_userbot.py: handle_real_media`, `backend/services/extraction.py: contains_real_credential_like_content`).
 
 ## Как это применяется за один ход диалога
 
