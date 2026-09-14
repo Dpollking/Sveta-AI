@@ -72,7 +72,9 @@ def _get_whisper_model():
     global _whisper_model
     if _whisper_model is None:
         from faster_whisper import WhisperModel
-        _whisper_model = WhisperModel("tiny", device="cpu", compute_type="int8")
+        # "tiny" is noticeably worse at Russian than "base" for a modest
+        # extra ~35MB of weights — worth the tradeoff on a free instance.
+        _whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
     return _whisper_model
 
 
