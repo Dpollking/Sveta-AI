@@ -52,7 +52,8 @@ async def handle_message(db: DBSession, session_id: str, user_message: str, pers
         if user_message.strip() in valid_codes:
             state.activated = True
             from backend.services import knowledge
-            reply = f"привет) я {knowledge.biography(state.persona)['name']}. рада познакомиться, расскажи немного о себе)"
+            bio = knowledge.biography(state.persona)
+            reply = f"привет) я {bio['name']}. {bio['activation_greeting']}"
         else:
             reply = BAD_CODE_REPLY
         memory.save_message(db, session_id, "assistant", reply, state.day)
