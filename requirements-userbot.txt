@@ -2,4 +2,9 @@
 # (non-bot) Telegram account via MTProto instead of the Bot API. See that
 # file's docstring for setup and the Terms-of-Service caveat before using it.
 httpx>=0.27
-telethon>=1.36
+pyrogram>=2.0
+
+# Optional C accelerator for Pyrogram's crypto — noticeably faster, but
+# needs a build toolchain. Pyrogram falls back to a pure-Python
+# implementation on its own if this isn't installed, so it's not required.
+# tgcrypto>=1.2
