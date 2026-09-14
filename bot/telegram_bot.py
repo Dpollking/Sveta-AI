@@ -6,14 +6,22 @@ points at http://127.0.0.1:8000 (local) or a deployed Render URL. Each
 Telegram chat gets its own session_id, so the same backend can serve the
 web chat and the bot for different people at once without collisions.
 
-Run:
+Two run modes, same handlers:
+
+Local/dev — long-polling, no public URL needed:
     pip install -r requirements-telegram.txt
     set TELEGRAM_BOT_TOKEN=...        (from @BotFather)
     set SVETA_API_BASE=http://127.0.0.1:8000
     python bot/telegram_bot.py
+
+Render free Web Service — webhook, so it can sleep between messages like
+any other free service instead of needing a paid always-on worker:
+    env: TELEGRAM_BOT_TOKEN, SVETA_API_BASE, PUBLIC_URL (this service's own URL)
+    start command: uvicorn bot.telegram_bot:fastapi_app --host 0.0.0.0 --port $PORT
 """
 import logging
 import os
+from contextlib import asynccontextmanager
 
 import httpx
 from telegram import Update
@@ -24,8 +32,11 @@ log = logging.getLogger("sveta-telegram-bot")
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 API_BASE = os.environ.get("SVETA_API_BASE", "http://127.0.0.1:8000").rstrip("/")
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "").rstrip("/")
+WEBHOOK_PATH = f"/telegram/webhook/{BOT_TOKEN.split(':')[0]}"
 
 http_client = httpx.AsyncClient(timeout=30.0)
+telegram_app = Application.builder().token(BOT_TOKEN).build()
 
 
 def session_id_for(chat_id: int) -> str:
@@ -76,14 +87,46 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text(caption)
 
 
-def main() -> None:
-    app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("report", report))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(CommandHandler("report", report))
+telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+
+def run_polling() -> None:
     log.info("Sveta AI Telegram bot polling, API_BASE=%s", API_BASE)
-    app.run_polling()
+    telegram_app.run_polling()
+
+
+fastapi_app = None
+try:
+    from fastapi import FastAPI, Request
+
+    @asynccontextmanager
+    async def _lifespan(_app: "FastAPI"):
+        await telegram_app.initialize()
+        if PUBLIC_URL:
+            await telegram_app.bot.set_webhook(f"{PUBLIC_URL}{WEBHOOK_PATH}")
+            log.info("Webhook set to %s%s", PUBLIC_URL, WEBHOOK_PATH)
+        await telegram_app.start()
+        yield
+        await telegram_app.stop()
+        await telegram_app.shutdown()
+
+    fastapi_app = FastAPI(lifespan=_lifespan)
+
+    @fastapi_app.get("/health")
+    async def health() -> dict:
+        return {"ok": True}
+
+    @fastapi_app.post(WEBHOOK_PATH)
+    async def webhook(request: Request) -> dict:
+        update = Update.de_json(await request.json(), telegram_app.bot)
+        await telegram_app.process_update(update)
+        return {"ok": True}
+
+except ImportError:
+    pass  # fastapi not installed — local polling mode only
 
 
 if __name__ == "__main__":
-    main()
+    run_polling()
