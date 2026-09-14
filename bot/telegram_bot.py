@@ -49,6 +49,11 @@ from bot import tts
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("sveta-telegram-bot")
 
+# httpx logs the full request URL at INFO level, which for Telegram API
+# calls includes the bot token (https://api.telegram.org/bot<TOKEN>/...) —
+# keep it at WARNING so the token never lands in application logs.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 API_BASE = os.environ.get("SVETA_API_BASE", "http://127.0.0.1:8000").rstrip("/")
 PUBLIC_URL = os.environ.get("PUBLIC_URL", "").rstrip("/")
