@@ -10,4 +10,4 @@ router = APIRouter(prefix="/api", tags=["chat"])
 
 @router.post("/chat", response_model=ChatResponsePublic)
 async def chat(req: ChatRequest, db: Session = Depends(get_db)) -> ChatResponsePublic:
-    return await handle_message(db, req.session_id, req.message)
+    return await handle_message(db, req.session_id, req.message, persona=req.persona)

@@ -45,6 +45,14 @@ class Settings(BaseSettings):
     knowledge_dir: str = "./knowledge"
     media_dir: str = "./media"
 
+    # Comma-separated invite codes gating access to the training bots — only
+    # people enrolled by whoever runs the training program should reach a
+    # persona. Empty string = no gate (open access, e.g. local development).
+    invite_codes: str = ""
+
+    def valid_invite_codes(self) -> set[str]:
+        return {c.strip() for c in self.invite_codes.split(",") if c.strip()}
+
     def resolved(self, path: str) -> Path:
         """For writable, persistent paths (database, chroma index)."""
         p = Path(path)

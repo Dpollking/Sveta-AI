@@ -36,4 +36,6 @@ def resolve_asset(asset_id: str, state: SessionState) -> Optional[dict]:
         "category": asset["category"],
         "blurred": asset.get("blurred", False),
         "description": asset["description"],
+        "file_path": asset.get("file_path"),
+        "media_type": asset.get("media_type", "photo"),
     }

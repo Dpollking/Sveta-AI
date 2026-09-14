@@ -75,6 +75,8 @@ class PsychParams(ClampedModel):
 
 class SessionState(ClampedModel):
     session_id: str
+    persona: str = "sveta"
+    activated: bool = False
     day: int = 1
     stage: str = "INTRODUCTION"
     strategy: str = "warmth"
@@ -105,6 +107,7 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     session_id: str = "demo"
     message: str
+    persona: str = "sveta"
 
 
 class ChatResponsePublic(BaseModel):

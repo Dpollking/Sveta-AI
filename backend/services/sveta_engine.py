@@ -11,12 +11,15 @@ reaches the user.
 """
 from sqlalchemy.orm import Session as DBSession
 
+from backend.core.config import settings
 from backend.llm.factory import get_llm_adapter
 from backend.models.schemas import ChatResponsePublic, SessionState
 from backend.services import extraction, media_controller, memory, prompts, response_validator, risk_engine, scenario_engine, strategy_manager
 from backend.services.rag import get_rag_service
 
 MESSAGES_PER_DAY = 3
+NO_CODE_REPLY = "привет) чтобы начать, введи код доступа, который тебе дали — просто отправь его следующим сообщением"
+BAD_CODE_REPLY = "хм, этот код не подходит) проверь ещё раз, как он был написан"
 
 
 def _apply_fact(state: SessionState, fact) -> None:
@@ -40,8 +43,21 @@ def _snapshot(state: SessionState) -> dict:
     return {"trust": state.relationship.trust, "suspicion": state.relationship.suspicion, "risk": state.risk}
 
 
-async def handle_message(db: DBSession, session_id: str, user_message: str) -> ChatResponsePublic:
-    state = memory.load_state(db, session_id)
+async def handle_message(db: DBSession, session_id: str, user_message: str, persona: str = "sveta") -> ChatResponsePublic:
+    state = memory.load_state(db, session_id, persona=persona)
+
+    valid_codes = settings.valid_invite_codes()
+    if valid_codes and not state.activated:
+        memory.save_message(db, session_id, "user", user_message, state.day)
+        if user_message.strip() in valid_codes:
+            state.activated = True
+            from backend.services import knowledge
+            reply = f"привет) я {knowledge.biography(state.persona)['name']}. рада познакомиться, расскажи немного о себе)"
+        else:
+            reply = BAD_CODE_REPLY
+        memory.save_message(db, session_id, "assistant", reply, state.day)
+        memory.save_state(db, state)
+        return ChatResponsePublic(session_id=session_id, reply=reply, day=state.day, media=[])
 
     if extraction.contains_real_credential_like_content(user_message):
         memory.save_message(db, session_id, "user", "[скрыто backend'ом: похоже на реальные учётные данные]", state.day)
@@ -129,7 +145,7 @@ async def handle_message(db: DBSession, session_id: str, user_message: str) -> C
 
     media = []
     if pending_event is not None and pending_event["id"] == "emotional_intimacy_deepening":
-        asset = media_controller.resolve_asset("sveta_flirty_01", state)
+        asset = media_controller.resolve_asset(f"{state.persona}_flirty_01", state)
         if asset:
             media.append(asset)
 

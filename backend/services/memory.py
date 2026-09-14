@@ -15,10 +15,10 @@ from backend.models.db_models import SessionRow, MessageRow, ResearchEventRow, R
 from backend.models.schemas import SessionState
 
 
-def load_state(db: DBSession, session_id: str) -> SessionState:
+def load_state(db: DBSession, session_id: str, persona: str = "sveta") -> SessionState:
     row = db.get(SessionRow, session_id)
     if row is None:
-        state = SessionState(session_id=session_id)
+        state = SessionState(session_id=session_id, persona=persona)
         _insert(db, state)
         return state
     return SessionState.model_validate(row.state_json)
@@ -27,6 +27,8 @@ def load_state(db: DBSession, session_id: str) -> SessionState:
 def _insert(db: DBSession, state: SessionState) -> None:
     row = SessionRow(
         session_id=state.session_id,
+        persona=state.persona,
+        activated=int(state.activated),
         day=state.day,
         stage=state.stage,
         trust=state.relationship.trust,
@@ -45,6 +47,8 @@ def save_state(db: DBSession, state: SessionState) -> None:
     if row is None:
         _insert(db, state)
         return
+    row.persona = state.persona
+    row.activated = int(state.activated)
     row.day = state.day
     row.stage = state.stage
     row.trust = state.relationship.trust
@@ -100,6 +104,19 @@ def log_red_flag(db: DBSession, session_id: str, code: str, day: int) -> None:
 
 def all_sessions(db: DBSession) -> list[SessionRow]:
     return db.query(SessionRow).order_by(SessionRow.updated_at.desc()).all()
+
+
+def transcript_text(db: DBSession, session_id: str) -> str | None:
+    row = db.get(SessionRow, session_id)
+    if row is None:
+        return None
+    messages = (
+        db.query(MessageRow).filter(MessageRow.session_id == session_id).order_by(MessageRow.id).all()
+    )
+    lines = [f"Sveta AI transcript — session {session_id} — persona {row.persona}", ""]
+    for m in messages:
+        lines.append(f"[день {m.day} | {m.created_at.isoformat()}] {m.role}: {m.content}")
+    return "\n".join(lines)
 
 
 def session_detail(db: DBSession, session_id: str) -> dict | None:

@@ -5,3 +5,13 @@ httpx>=0.27
 python-telegram-bot>=21.0
 fastapi>=0.115
 uvicorn[standard]>=0.30
+
+# Voice-message transcription (CPU, "tiny" model — a few hundred MB of
+# weights on first run). Remove this line if Render's free 512MB instance
+# can't fit it alongside the rest — the bot degrades gracefully to
+# "напиши текстом" for voice messages when faster-whisper isn't installed.
+faster-whisper>=1.0
+
+# Text-to-speech for replies (only used when TTS_ENABLED=true). Voice
+# models (~60MB each) auto-download on first use into data/piper_voices/.
+piper-tts>=1.2

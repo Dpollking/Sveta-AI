@@ -2,6 +2,7 @@
 end user lives here, gated by `require_admin`.
 """
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
 from backend.api.deps import require_admin
@@ -16,7 +17,8 @@ def list_sessions(db: Session = Depends(get_db)) -> list[dict]:
     rows = memory.all_sessions(db)
     return [
         {
-            "session_id": r.session_id, "day": r.day, "stage": r.stage,
+            "session_id": r.session_id, "persona": r.persona, "activated": bool(r.activated),
+            "day": r.day, "stage": r.stage,
             "trust": r.trust, "attraction": r.attraction,
             "emotional_attachment": r.emotional_attachment,
             "suspicion": r.suspicion, "risk": r.risk,
@@ -34,16 +36,24 @@ def get_session_detail(session_id: str, db: Session = Depends(get_db)) -> dict:
     return detail
 
 
+@router.get("/sessions/{session_id}/transcript", response_class=PlainTextResponse)
+def get_transcript(session_id: str, db: Session = Depends(get_db)) -> str:
+    text = memory.transcript_text(db, session_id)
+    if text is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    return text
+
+
 @router.get("/dashboard")
 def dashboard(db: Session = Depends(get_db)) -> dict:
     return analytics.dashboard_stats(db)
 
 
 @router.get("/biography")
-def biography() -> dict:
+def biography(persona: str = "sveta") -> dict:
     return {
-        "biography": knowledge.biography(),
-        "timeline": knowledge.timeline(),
+        "biography": knowledge.biography(persona),
+        "timeline": knowledge.timeline(persona),
     }
 
 

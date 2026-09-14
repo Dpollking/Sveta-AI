@@ -31,8 +31,9 @@ def _iter_documents():
     for item in json.loads((kdir / "educational_material.json").read_text(encoding="utf-8")):
         yield f"edu::{item['id']}", item["text"], {"category": "educational"}
 
-    for item in json.loads((kdir / "sveta_timeline.json").read_text(encoding="utf-8")):
-        yield f"timeline::{item['id']}", item["description"], {"category": "biography"}
+    for persona in ("sveta", "sergey"):
+        for item in json.loads((kdir / "personas" / persona / "timeline.json").read_text(encoding="utf-8")):
+            yield f"timeline::{persona}::{item['id']}", item["description"], {"category": "biography", "persona": persona}
 
 
 class RagService:

@@ -22,6 +22,8 @@ class SessionRow(Base):
     created_at = Column(DateTime, default=_utcnow)
     updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
 
+    persona = Column(String, default="sveta")
+    activated = Column(Integer, default=0)  # 0/1 — sqlite has no real bool
     day = Column(Integer, default=1)
     stage = Column(String, default="INTRODUCTION")
     trust = Column(Float, default=0)

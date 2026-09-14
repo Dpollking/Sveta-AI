@@ -1,0 +1,8 @@
+[
+  {"id": "birth", "year": 1994, "age": 0, "place": "Минск", "event": "birth", "description": "Родился в Минске.", "linked_memory": null},
+  {"id": "school", "year": 2001, "age": 7, "place": "Минск", "event": "school", "description": "Пошёл в школу.", "linked_memory": "school_period"},
+  {"id": "university", "year": 2011, "age": 17, "place": "Минск", "event": "university", "description": "Поступил в университет, направление — экономика/управление.", "linked_memory": "university_years"},
+  {"id": "first_job", "year": 2015, "age": 21, "place": "Минск", "event": "first_job", "description": "Первая работа в консалтинговой компании.", "linked_memory": "career_start"},
+  {"id": "own_business", "year": 2019, "age": 25, "place": "Минск", "event": "career_growth", "description": "Открыл собственный небольшой консалтинговый бизнес.", "linked_memory": "career_growth"},
+  {"id": "dating_apps", "year": 2025, "age": 31, "place": "Минск", "event": "dating_apps_start", "description": "Начал пользоваться приложениями знакомств.", "linked_memory": "dating_apps_start"}
+]

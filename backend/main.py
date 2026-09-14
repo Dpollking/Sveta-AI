@@ -35,5 +35,6 @@ app.include_router(chat_router)
 app.include_router(session_router)
 app.include_router(admin_router)
 
+app.mount("/media", StaticFiles(directory=str(ASSETS_DIR / "media")), name="media")
 app.mount("/admin", StaticFiles(directory=str(ASSETS_DIR / "admin"), html=True), name="admin")
 app.mount("/", StaticFiles(directory=str(ASSETS_DIR / "frontend"), html=True), name="frontend")

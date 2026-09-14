@@ -13,18 +13,31 @@ async function authedFetch(path) {
   return resp.json();
 }
 
-async function loadDashboard() {
-  const stats = await authedFetch("/api/admin/dashboard");
-  document.getElementById("stats").innerHTML = `
-    <div>Всего сессий<strong>${stats.total_sessions}</strong></div>
-    <div>Средний trust<strong>${stats.avg_trust}</strong></div>
-    <div>Средняя suspicion<strong>${stats.avg_suspicion}</strong></div>
-    <div>Средний risk<strong>${stats.avg_risk}</strong></div>
-  `;
-  const flagRows = Object.entries(stats.red_flag_frequency)
+function renderPersonaBlock(title, s) {
+  const flagRows = Object.entries(s.red_flag_frequency)
     .map(([code, count]) => `<tr><td>${code}</td><td>${count}</td></tr>`)
     .join("");
-  document.querySelector("#flagTable tbody").innerHTML = flagRows || "<tr><td colspan=2>Нет данных</td></tr>";
+  return `
+    <div class="persona-block">
+      <h3>${title}</h3>
+      <div class="stats">
+        <div>Всего сессий<strong>${s.total_sessions}</strong></div>
+        <div>Активировано<strong>${s.activated_sessions}</strong></div>
+        <div>Средний trust<strong>${s.avg_trust}</strong></div>
+        <div>Средняя suspicion<strong>${s.avg_suspicion}</strong></div>
+        <div>Средний risk<strong>${s.avg_risk}</strong></div>
+      </div>
+      <table><tbody>${flagRows || "<tr><td colspan=2>Нет данных</td></tr>"}</tbody></table>
+    </div>
+  `;
+}
+
+async function loadDashboard() {
+  const stats = await authedFetch("/api/admin/dashboard");
+  const personaBlocks = Object.entries(stats.by_persona)
+    .map(([persona, s]) => renderPersonaBlock(persona, s))
+    .join("");
+  document.getElementById("stats").innerHTML = renderPersonaBlock("Всего", stats.overall) + personaBlocks;
 }
 
 async function loadSessions() {
@@ -32,6 +45,8 @@ async function loadSessions() {
   const rows = sessions.map((s) => `
     <tr class="session-row" data-id="${s.session_id}">
       <td>${s.session_id.slice(0, 8)}</td>
+      <td>${s.persona}</td>
+      <td>${s.activated ? "да" : "нет"}</td>
       <td>${s.day}</td>
       <td>${s.stage}</td>
       <td>${s.trust.toFixed(0)}</td>
@@ -42,7 +57,7 @@ async function loadSessions() {
     </tr>
   `).join("");
   const tbody = document.querySelector("#sessionsTable tbody");
-  tbody.innerHTML = rows || "<tr><td colspan=8>Нет сессий</td></tr>";
+  tbody.innerHTML = rows || "<tr><td colspan=10>Нет сессий</td></tr>";
   tbody.querySelectorAll(".session-row").forEach((row) => {
     row.addEventListener("click", () => loadDetail(row.dataset.id));
   });
@@ -59,7 +74,7 @@ async function loadDetail(sessionId) {
   `).join("") || "—";
 
   document.getElementById("detail").innerHTML = `
-    <h3>Сессия ${sessionId}</h3>
+    <h3>Сессия ${sessionId} <button id="downloadTranscript">Скачать транскрипт</button></h3>
     <div class="chat-log">${chat}</div>
     <p><strong>Red flags:</strong> ${flags}</p>
     <p><strong>Manipulation signals:</strong> ${signals}</p>
@@ -68,6 +83,17 @@ async function loadDetail(sessionId) {
     <p><strong>Полное состояние:</strong></p>
     <pre>${JSON.stringify(detail.state, null, 2)}</pre>
   `;
+
+  document.getElementById("downloadTranscript").addEventListener("click", async () => {
+    const resp = await fetch(`/api/admin/sessions/${sessionId}/transcript`, { headers: { "X-Admin-Token": TOKEN } });
+    const text = await resp.text();
+    const blob = new Blob([text], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${sessionId}-transcript.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
 }
 
 async function refreshAll() {
