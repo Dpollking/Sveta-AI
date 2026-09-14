@@ -117,7 +117,7 @@ async def _send_media(update: Update, media: dict) -> None:
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("привет) напиши код доступа, чтобы начать")
+    await update.message.reply_text("привет)")
 
 
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
