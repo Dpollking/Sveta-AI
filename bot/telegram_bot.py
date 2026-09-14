@@ -62,7 +62,7 @@ PERSONA = os.environ.get("PERSONA", "sveta")
 TTS_ENABLED = os.environ.get("TTS_ENABLED", "false").lower() == "true"
 WEBHOOK_PATH = f"/telegram/webhook/{BOT_TOKEN.split(':')[0]}"
 
-http_client = httpx.AsyncClient(timeout=30.0)
+http_client = httpx.AsyncClient(timeout=90.0)
 telegram_app = Application.builder().token(BOT_TOKEN).build()
 
 _whisper_model = None

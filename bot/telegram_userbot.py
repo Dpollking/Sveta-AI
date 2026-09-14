@@ -122,7 +122,7 @@ async def handle_message(client: Client, message: Message) -> None:
     import httpx
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as http_client:
+        async with httpx.AsyncClient(timeout=90.0) as http_client:
             resp = await http_client.post(
                 f"{API_BASE}/api/chat", json={"session_id": sid, "message": message.text, "persona": PERSONA},
             )
