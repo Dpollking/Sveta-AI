@@ -222,7 +222,7 @@ def run_polling() -> None:
 
 fastapi_app = None
 try:
-    from fastapi import FastAPI, Request
+    from fastapi import BackgroundTasks, FastAPI, Request
 
     @asynccontextmanager
     async def _lifespan(_app: "FastAPI"):
@@ -242,9 +242,13 @@ try:
         return {"ok": True, "persona": PERSONA}
 
     @fastapi_app.post(WEBHOOK_PATH)
-    async def webhook(request: Request) -> dict:
+    async def webhook(request: Request, background_tasks: BackgroundTasks) -> dict:
+        # Ack Telegram immediately — transcription + the LLM call can run
+        # past Telegram's own webhook timeout, and a slow ack makes it
+        # redeliver the same update (voice messages getting transcribed
+        # more than once). Process the update after responding instead.
         update = Update.de_json(await request.json(), telegram_app.bot)
-        await telegram_app.process_update(update)
+        background_tasks.add_task(telegram_app.process_update, update)
         return {"ok": True}
 
 except ImportError:
