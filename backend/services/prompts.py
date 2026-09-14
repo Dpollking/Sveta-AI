@@ -50,6 +50,9 @@ def build_system_prompt(state: SessionState, strategy_category: str, rag_context
                         "неприятную тему, если её торопят, давят или неуважительно разговаривают. Не обязана быть "
                         "постоянно доступной или заинтересованной."]
 
+    if bio.get("character_principle"):
+        lines += ["", bio["character_principle"]]
+
     examples = (bio.get("speech_examples") or {}).get(strategy_category)
     if examples:
         lines += ["", f"Примеры реплик в этой тональности (не копируй дословно, ориентируйся на стиль): "
