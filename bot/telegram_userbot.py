@@ -14,7 +14,11 @@ banned. Only run this against an account you own and are using for your
 own self-testing — never against someone else's account, and never for
 mass/unsolicited messaging.
 
-Setup:
+Only replies in private 1:1 chats, and only to messages from the other
+side — it never reacts to your own outgoing messages, so you can still
+use this Telegram account normally alongside it.
+
+--- Local run (interactive login, file-based session) ---
     pip install -r requirements-userbot.txt
     Get api_id / api_hash for your account from https://my.telegram.org/apps
     set TG_API_ID=...
@@ -32,14 +36,34 @@ next to this file, so later runs reconnect silently without asking again.
 Treat that .session file like a password — anyone who has it can act as
 your Telegram account without needing the login code again.
 
-Only replies in private 1:1 chats, and only to messages from the other
-side — it never reacts to your own outgoing messages, so you can still
-use this Telegram account normally alongside it.
+--- Deploying 24/7 (Render or any host without a terminal you can log in from) ---
+A host like Render can't do the interactive phone/code prompt above, and
+its filesystem doesn't persist a `.session` file across deploys anyway.
+So instead:
+
+1. Locally, run `python -m bot.generate_userbot_session` once (same
+   TG_API_ID/TG_API_HASH) — it logs you in interactively, same as above,
+   and prints a portable session string instead of saving a file.
+2. Set that string as `TG_SESSION_STRING` in the host's environment
+   variables (paste it directly in the host's dashboard, not in chat —
+   treat it exactly like a password, because it is one).
+3. Deploy this module normally (`python -m bot.telegram_userbot`) with
+   `TG_SESSION_STRING` set — it skips the interactive login entirely and
+   reconnects straight from the string, kept in memory only.
+4. If the host is a Render *Web Service* (as opposed to a Background
+   Worker), it expects something listening on `$PORT` or it'll consider
+   the deploy unhealthy. This module starts a trivial `/health` responder
+   on `$PORT` when that variable is set, purely to satisfy that check —
+   it doesn't receive Telegram traffic, Pyrogram's own MTProto connection
+   to Telegram's servers does all the real work.
 """
+import asyncio
+import http.server
 import logging
 import os
+import threading
 
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 
 logging.basicConfig(level=logging.INFO)
@@ -53,9 +77,15 @@ API_ID = int(os.environ["TG_API_ID"])
 API_HASH = os.environ["TG_API_HASH"]
 API_BASE = os.environ.get("SVETA_API_BASE", "http://127.0.0.1:8000").rstrip("/")
 PERSONA = os.environ.get("PERSONA", "sveta")
+SESSION_STRING = os.environ.get("TG_SESSION_STRING")
 SESSION_PATH = os.environ.get("TG_SESSION_PATH", "sveta_userbot")
 
-app = Client(SESSION_PATH, api_id=API_ID, api_hash=API_HASH)
+if SESSION_STRING:
+    # Deployed mode: no local file at all, session lives in the env var.
+    app = Client("sveta_userbot", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING, in_memory=True)
+else:
+    # Local mode: file-based session, interactive login on first run.
+    app = Client(SESSION_PATH, api_id=API_ID, api_hash=API_HASH)
 
 
 def session_id_for(chat_id: int) -> str:
@@ -87,9 +117,42 @@ async def handle_real_media(_client: Client, message: Message) -> None:
     await message.reply("слушай, я не открываю фото и видео от малознакомых людей) давай пока просто словами")
 
 
+class _HealthHandler(http.server.BaseHTTPRequestHandler):
+    """Answers Render's (or any platform's) port-binding health check.
+
+    Not part of the actual conversation — Pyrogram talks to Telegram over
+    its own MTProto connection, this just proves *something* is listening
+    on $PORT so a Web Service host doesn't consider the deploy dead.
+    """
+
+    def do_GET(self) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(b'{"ok": true}')
+
+    def log_message(self, *args) -> None:
+        pass  # don't spam the app log with health-check hits
+
+
+def _start_health_server(port: int) -> None:
+    server = http.server.HTTPServer(("0.0.0.0", port), _HealthHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    log.info("Health endpoint listening on :%s (for the host's port check only)", port)
+
+
+async def _main() -> None:
+    port = os.environ.get("PORT")
+    if port:
+        _start_health_server(int(port))
+
+    async with app:
+        log.info("Sveta AI Telegram userbot (%s) running, API_BASE=%s", PERSONA, API_BASE)
+        await idle()
+
+
 def run() -> None:
-    log.info("Sveta AI Telegram userbot (%s) starting, API_BASE=%s", PERSONA, API_BASE)
-    app.run()
+    asyncio.run(_main())
 
 
 if __name__ == "__main__":
