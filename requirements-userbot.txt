@@ -1,0 +1,5 @@
+# Optional: run bot/telegram_userbot.py, which drives Sveta from a regular
+# (non-bot) Telegram account via MTProto instead of the Bot API. See that
+# file's docstring for setup and the Terms-of-Service caveat before using it.
+httpx>=0.27
+telethon>=1.36
