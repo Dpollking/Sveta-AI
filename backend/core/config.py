@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite:///./data/sveta.db"
 
+    # ollama | llama_cpp | vllm | anthropic
     llm_provider: str = "ollama"
     llm_base_url: str = "http://localhost:11434"
     llm_model: str = "qwen2.5:7b"
