@@ -64,6 +64,7 @@ import os
 import threading
 
 from pyrogram import Client, filters, idle
+from pyrogram.enums import ChatAction
 from pyrogram.types import Message
 
 logging.basicConfig(level=logging.INFO)
@@ -92,8 +93,31 @@ def session_id_for(chat_id: int) -> str:
     return f"{PERSONA}-tguser-{chat_id}"
 
 
+# Real people don't answer instantly. Pace the reply to roughly how long it
+# would take a person to type it, and show the "typing..." indicator for
+# that stretch instead of the reply just appearing.
+TYPING_CHARS_PER_SECOND = 12
+TYPING_MIN_DELAY = 1.0
+TYPING_MAX_DELAY = 6.0
+
+
+def _typing_delay(text: str) -> float:
+    return min(TYPING_MAX_DELAY, max(TYPING_MIN_DELAY, len(text) / TYPING_CHARS_PER_SECOND))
+
+
+async def _show_typing(client: Client, chat_id: int, seconds: float) -> None:
+    # A single send_chat_action only keeps the indicator up for ~5s, so
+    # refresh it in a loop for longer waits.
+    elapsed = 0.0
+    while elapsed < seconds:
+        await client.send_chat_action(chat_id, ChatAction.TYPING)
+        step = min(4.0, seconds - elapsed)
+        await asyncio.sleep(step)
+        elapsed += step
+
+
 @app.on_message(filters.private & filters.incoming & filters.text)
-async def handle_message(_client: Client, message: Message) -> None:
+async def handle_message(client: Client, message: Message) -> None:
     sid = session_id_for(message.chat.id)
     import httpx
 
@@ -109,7 +133,9 @@ async def handle_message(_client: Client, message: Message) -> None:
         await message.reply("что-то не так со связью, попробуй ещё раз чуть позже")
         return
 
-    await message.reply(data["reply"])
+    reply = data["reply"]
+    await _show_typing(client, message.chat.id, _typing_delay(reply))
+    await message.reply(reply)
 
 
 @app.on_message(filters.private & filters.incoming & (filters.photo | filters.video | filters.video_note | filters.voice | filters.audio))

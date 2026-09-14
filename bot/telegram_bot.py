@@ -42,6 +42,7 @@ from pathlib import Path
 
 import httpx
 from telegram import Update
+from telegram.constants import ChatAction
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 from bot import tts
@@ -79,6 +80,29 @@ def session_id_for(chat_id: int) -> str:
     return f"{PERSONA}-telegram-{chat_id}"
 
 
+# Real people don't answer instantly. Pace the reply to roughly how long it
+# would take a person to type it, and show Telegram's "typing..." indicator
+# for that stretch instead of the reply just appearing.
+TYPING_CHARS_PER_SECOND = 12
+TYPING_MIN_DELAY = 1.0
+TYPING_MAX_DELAY = 6.0
+
+
+def _typing_delay(text: str) -> float:
+    return min(TYPING_MAX_DELAY, max(TYPING_MIN_DELAY, len(text) / TYPING_CHARS_PER_SECOND))
+
+
+async def _show_typing(chat_id: int, seconds: float) -> None:
+    # A single send_chat_action only keeps the indicator up for ~5s, so
+    # refresh it in a loop for longer waits.
+    elapsed = 0.0
+    while elapsed < seconds:
+        await telegram_app.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+        step = min(4.0, seconds - elapsed)
+        await asyncio.sleep(step)
+        elapsed += step
+
+
 async def _send_chat(update: Update, user_text: str) -> None:
     sid = session_id_for(update.effective_chat.id)
     try:
@@ -92,9 +116,11 @@ async def _send_chat(update: Update, user_text: str) -> None:
         return
 
     data = resp.json()
-    await update.message.reply_text(data["reply"])
+    reply = data["reply"]
+    await _show_typing(update.effective_chat.id, _typing_delay(reply))
+    await update.message.reply_text(reply)
     if TTS_ENABLED:
-        await _send_voice_reply(update, data["reply"])
+        await _send_voice_reply(update, reply)
     for media in data.get("media", []):
         await _send_media(update, media)
 
