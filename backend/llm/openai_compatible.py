@@ -24,7 +24,12 @@ class OpenAICompatibleAdapter(LLMAdapter):
                     "max_tokens": max_tokens,
                 },
             )
-            resp.raise_for_status()
+            if resp.is_error:
+                # raise_for_status() alone only reports the status line — the
+                # provider's actual reason (bad key, disallowed model, quota,
+                # moderation, ...) is in the JSON/text body, which is worth
+                # having in the traceback rather than just "403 Forbidden".
+                raise RuntimeError(f"{resp.status_code} from {resp.request.url}: {resp.text[:500]}")
             data = resp.json()
             return data["choices"][0]["message"]["content"].strip()
 
