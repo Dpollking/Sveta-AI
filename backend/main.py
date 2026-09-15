@@ -22,13 +22,18 @@ app = FastAPI(title="Sveta AI — Safe Romance Fraud Simulator", version="0.4.0"
 
 @app.get("/api/health")
 async def health() -> dict:
+    # Kept free of any outbound calls (LLM provider, DB, ...) — this is the
+    # endpoint uptime monitors hit to keep the free-tier instance awake, and
+    # a flaky third-party dependency here would make the monitor itself
+    # unreliable. For LLM reachability, see /api/health/llm.
     llm = get_llm_adapter()
-    return {
-        "ok": True,
-        "mode": "local-first",
-        "llm_provider": type(llm).__name__,
-        "llm_reachable": await llm.health(),
-    }
+    return {"ok": True, "mode": "local-first", "llm_provider": type(llm).__name__}
+
+
+@app.get("/api/health/llm")
+async def health_llm() -> dict:
+    llm = get_llm_adapter()
+    return {"llm_provider": type(llm).__name__, "llm_reachable": await llm.health()}
 
 
 app.include_router(chat_router)
