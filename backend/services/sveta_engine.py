@@ -9,6 +9,8 @@ risk score) is deterministic backend code; only the final phrasing comes
 from the LLM, and even that is checked by response_validator before it
 reaches the user.
 """
+import logging
+
 from sqlalchemy.orm import Session as DBSession
 
 from backend.core.config import settings
@@ -16,6 +18,8 @@ from backend.llm.factory import get_llm_adapter
 from backend.models.schemas import ChatResponsePublic, SessionState
 from backend.services import extraction, media_controller, memory, prompts, response_validator, risk_engine, scenario_engine, strategy_manager
 from backend.services.rag import get_rag_service
+
+log = logging.getLogger("sveta.engine")
 
 MESSAGES_PER_DAY = 3
 NO_CODE_REPLY = "привет) чтобы начать, введи код доступа, который тебе дали — просто отправь его следующим сообщением"
@@ -140,6 +144,7 @@ async def handle_message(db: DBSession, session_id: str, user_message: str, pers
     try:
         raw_reply = await llm.chat(messages)
     except Exception:
+        log.exception("LLM call failed (provider=%s, model=%s) — falling back to a stock reply", settings.llm_provider, settings.llm_model)
         raw_reply = response_validator.fallback_reply()
 
     _, reply = response_validator.validate(raw_reply)
